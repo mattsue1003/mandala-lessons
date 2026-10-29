@@ -80,6 +80,11 @@ header p{margin:4px 0 0;color:var(--muted);font-size:15px;max-width:60ch}
 .fsnav button{min-height:60px;padding:6px 10px;border:none;border-radius:999px;background:rgba(255,255,255,.92);color:#2a2840;font-family:var(--font-display);font-size:22px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.25)}
 .fsnav #fsNext{background:var(--accent);color:#fff}
 .stage-wrap.is-fs .hud,.stage-wrap:fullscreen .hud{display:none}
+.stage-wrap.wide .fscap{right:calc(var(--boardw) + 28px);top:max(80px,env(safe-area-inset-top,0px))}
+.stage-wrap.wide .fscap span{font-size:clamp(20px,2vw,34px)}
+.stage-wrap.wide .fsnav{right:calc(var(--boardw) + 28px);margin-left:0;max-width:none;grid-template-columns:1fr 1fr;}
+.stage-wrap.wide .fsnav #fsNext{grid-column:1 / -1;order:-1}
+.stage-wrap.wide .fsbtn{right:auto;left:max(12px,calc(env(safe-area-inset-left,0px) + 8px))}
 @media (max-width:600px){ .fscap b{font-size:22px} .fscap span{font-size:16px} .stage-wrap.is-fs .fscap{right:150px} .fsnav button{font-size:17px;padding:4px 6px;white-space:nowrap} }
 .mbar{display:none}
 @media (max-width:920px){
@@ -584,7 +589,10 @@ const curLes = () => S.lesson < 0 ? DS : LESSONS[S.lesson];
 const seqMode = () => S.order === 'seq';
 
 /* ---------- 舞台 ---------- */
-function cam(){ const W = stage.width, H = stage.height, s = Math.min(W,H)/1000; return {s, ox:(W-1000*s)/2, oy:(H-1000*s)/2}; }
+function cam(){ const W = stage.width, H = stage.height;
+  if (wideFs()){ const s = H*.94/1000; return {s, ox:W - 1000*s - H*.03, oy:(H-1000*s)/2}; } // 投影寬螢幕：畫紙靠右，左邊放字幕和按鈕
+  const s = Math.min(W,H)/1000; return {s, ox:(W-1000*s)/2, oy:(H-1000*s)/2}; }
+const wideFs = () => typeof isFs === 'function' && isFs() && stage.width/stage.height > 1.3;
 function drawMat(ctx){
   const W = stage.width, H = stage.height, T = cam(), step = 50*T.s;
   ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle = TK.mat || '#33357a'; ctx.fillRect(0,0,W,H);
@@ -1085,6 +1093,7 @@ function resize(){
   const r = wrapEl.getBoundingClientRect(); dpr = Math.min(2, window.devicePixelRatio || 1);
   const w = Math.max(10, Math.round(r.width*dpr)), h = Math.max(10, Math.round(r.height*dpr));
   if (stage.width !== w || stage.height !== h){ stage.width = w; stage.height = h; }
+  wrapEl.classList.toggle('wide', wideFs()); wrapEl.style.setProperty('--boardw', (r.height*.97) + 'px');
   render();
 }
 new ResizeObserver(resize).observe(wrapEl);
@@ -1102,7 +1111,7 @@ resize();
 loadLesson(0, false);
 setTimeout(() => runLessonStep(0), 300);
 fontsReady().then(() => { render(); updateA4Preview(); });
-window.__mandala = {S, get V(){ return V; }, LESSONS, MOTIFS, get M(){ return M; }, buildMandala, makeSheet, finalArt, loadLesson, runLessonStep, setView, get DS(){ return DS; }};
+window.__mandala = {S, get V(){ return V; }, LESSONS, MOTIFS, get M(){ return M; }, get steps(){ return steps; }, buildMandala, drawMandala, render, makeSheet, finalArt, loadLesson, runLessonStep, setView, get DS(){ return DS; }};
 })();
 </script>
 
